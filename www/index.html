@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebServ Demo</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --panel-2: #f2f4f8;
+      --text: #151a24;
+      --muted: #5c6475;
+      --accent: #1f7aff;
+      --accent-2: #14b8a6;
+      --border: #e3e7ef;
+      --shadow: 0 12px 30px rgba(19, 28, 43, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 20% -10%, #ffffff 0%, #f0f3f8 60%);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(0px);
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 260px;
+      height: 260px;
+      background: #dbeafe;
+      top: -60px;
+      right: 8%;
+    }
+
+    body::after {
+      width: 320px;
+      height: 320px;
+      background: #dcfce7;
+      bottom: -120px;
+      left: 6%;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff, #f4f7fb);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: #f1f5f9;
+      right: -60px;
+      top: -60px;
+      border-radius: 50%;
+      opacity: 0.6;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .chip {
+      display: inline-block;
+      font-size: 12px;
+      color: #0f172a;
+      background: #dbeafe;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul {
+      padding-left: 18px;
+      margin: 10px 0 0;
+    }
+
+    code {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #334155;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      height: 40px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      min-width: 0;
+    }
+
+    input::-webkit-credentials-auto-fill-button,
+    input::-webkit-contacts-auto-fill-button,
+    input[type="text"]::-webkit-contacts-auto-fill-button {
+      visibility: hidden;
+      display: none !important;
+      pointer-events: none;
+    }
+
+    input::-webkit-textfield-decoration-container {
+      display: none;
+    }
+
+    input::-webkit-clear-button,
+    input::-webkit-inner-spin-button,
+    input::-webkit-outer-spin-button,
+    input::-webkit-search-cancel-button,
+    input::-webkit-search-decoration {
+      display: none;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.35);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button, .btn {
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1f7aff, #3b82f6);
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .btn.secondary {
+      background: #ffffff;
+      color: #1e293b;
+      border: 1px solid var(--border);
+    }
+
+    .btn.soft {
+      background: #e0f2fe;
+      color: #0f172a;
+      border: 1px solid #bae6fd;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button, .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div>
+        <h1>WebServ<span class="chip">C only</span></h1>
+        <p>Un serveur web écrit uniquement en C.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn secondary" href="/hello?name=Can">Tester Hello</a>
+        <a class="btn" href="/api?foo=bar&baz=42">Tester API</a>
+      </div>
+      <div class="status">
+        <span class="dot"></span>
+        Serveur prêt à recevoir des requêtes
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Actions rapides</h2>
+        <p class="muted">Des routes lisibles, avec des boutons clairs.</p>
+        <div style="display: grid; gap: 8px; margin-top: 10px;">
+          <a class="btn secondary" href="/hello?name=Can">Dire bonjour</a>
+          <a class="btn secondary" href="/test">Test du serveur</a>
+          <a class="btn soft" href="/api?foo=bar&baz=42">Ping API</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Formulaire GET</h2>
+        <p class="muted">Rentre un nom, et le serveur répond.</p>
+        <form method="GET" action="/hello">
+          <label>
+            Nom
+            <input type="text" name="name" value="Can" />
+          </label>
+          <button type="submit">Envoyer</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Formulaire POST</h2>
+        <p class="muted">Le serveur affiche la payload reçue.</p>
+        <form method="POST" action="/submit" autocomplete="off">
+          <div class="field">
+            <label for="message">Message</label>
+            <input id="message" type="text" name="message_field" value="Hello from the browser"
+                   autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="tag">Tag</label>
+              <input id="tag" type="text" name="tag_field" value="demo"
+                     autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </div>
+            <div class="field">
+              <label for="priority">Priority</label>
+              <input id="priority" type="text" name="priority_field" value="high"
+                     autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit">Envoyer le POST</button>
+            <a class="btn secondary" href="/test">Voir un test</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Statut &amp; debug</h2>
+        <p class="muted">Les logs côté serveur affichent l’IP, la méthode et la route.</p>
+        <ul>
+          <li>GET <code>/hello</code> avec paramètres</li>
+          <li>GET <code>/api</code> retourne du JSON</li>
+          <li>POST <code>/submit</code> affiche le body</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Fichiers statiques</h2>
+        <p class="muted">Cette page vient de <code>www/index.html</code>.</p>
+        <p>Ajoute un fichier dans <code>www/</code> puis ouvre-le dans le navigateur.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      Webserv • Serveur web minimaliste écrit en C • Simple et efficace
+    </div>
+  </div>
+</body>
+</html>
