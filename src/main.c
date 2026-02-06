@@ -12,13 +12,11 @@ static void handle_shutdown(int sig) {
     exit(0);
 }
 
-/* Ramasse les processus enfants terminés pour éviter les zombies. */
 static void handle_child_exit(int sig) {
     (void)sig;
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-/* Réponse dynamique pour /hello?name=... */
 static void respond_hello(int client_fd, HttpRequest *request) {
     const char *name = http_get_query_param(request, "name");
     
@@ -41,7 +39,6 @@ static void respond_hello(int client_fd, HttpRequest *request) {
     http_send_response(client_fd, 200, "text/html", response, strlen(response));
 }
 
-/* Réponse simple pour /test */
 static void respond_test(int client_fd, const HttpRequest *request) {
     char response[512];
     snprintf(response, sizeof(response),
@@ -57,7 +54,6 @@ static void respond_test(int client_fd, const HttpRequest *request) {
     http_send_response(client_fd, 200, "text/html", response, strlen(response));
 }
 
-/* Page de confirmation pour les requêtes POST */
 static void respond_post(int client_fd, const HttpRequest *request) {
     char response[2048];
     snprintf(response, sizeof(response),
@@ -82,7 +78,6 @@ static void respond_post(int client_fd, const HttpRequest *request) {
     http_send_response(client_fd, 200, "text/html", response, strlen(response));
 }
 
-/* Traite une requête client dans un processus enfant. */
 static void handle_client_request(int client_fd, const struct sockaddr_in *client_addr) {
     char buffer[BUFFER_SIZE];
     HttpRequest request;
@@ -102,7 +97,6 @@ static void handle_client_request(int client_fd, const struct sockaddr_in *clien
         return;
     }
     
-    /* Log simple de la requête */
     char client_ip[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &client_addr->sin_addr, client_ip, sizeof(client_ip));
     
@@ -114,25 +108,21 @@ static void handle_client_request(int client_fd, const struct sockaddr_in *clien
         server_log_request(client_ip, request.method, request.path);
     }
     
-    /* Routage selon la méthode et le chemin. */
     if (strcmp(request.method, "GET") == 0) {
         if (strncmp(request.path, "/hello", 6) == 0) {
             respond_hello(client_fd, &request);
         } else if (strncmp(request.path, "/test", 5) == 0) {
             respond_test(client_fd, &request);
         } else if (strncmp(request.path, "/api", 4) == 0 || strcmp(request.path, "/submit") == 0) {
-            /* Pour les appels API, on retourne du JSON. */
             char json[256];
             snprintf(json, sizeof(json),
                 "{\"status\":\"ok\",\"message\":\"GET request\",\"params\":%d}",
                 request.param_count);
             http_send_response(client_fd, 200, "application/json", json, strlen(json));
         } else {
-            /* Fichiers statiques */
             http_send_file(client_fd, request.path);
         }
     } else if (strcmp(request.method, "POST") == 0) {
-        printf("  Corps POST (%zu bytes): %s\n", request.body_length, request.body);
         respond_post(client_fd, &request);
     } else {
         http_send_error(client_fd, 400);
@@ -152,11 +142,9 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    /* Configure les signaux */
     signal(SIGINT, handle_shutdown);
     signal(SIGCHLD, handle_child_exit);
     
-    /* Crée le serveur */
     if (server_create(&g_server, port) < 0) {
         return 1;
     }
@@ -164,7 +152,6 @@ int main(int argc, char *argv[]) {
     printf("Serveur disponible sur: http://localhost:%d\n", port);
     printf("Ctrl+C pour arrêter\n\n");
     
-    /* Boucle principale : accepte les connexions et fork pour chacune */
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
@@ -180,7 +167,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        /* Fork pour gérer le client en parallèle */
         pid_t pid = fork();
         
         if (pid < 0) {
@@ -190,12 +176,10 @@ int main(int argc, char *argv[]) {
         }
         
         if (pid == 0) {
-            /* Processus enfant : traite la requête puis termine */
             close(g_server.socket_fd);
             handle_client_request(client_fd, &client_addr);
             exit(0);
         } else {
-            /* Processus parent : ferme le socket client et continue */
             close(client_fd);
         }
     }

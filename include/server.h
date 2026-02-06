@@ -20,16 +20,12 @@ typedef struct {
     struct sockaddr_in address;
 } Server;
 
-/* Crée et configure le serveur sur un port donné. */
 int server_create(Server *srv, int port);
 
-/* Accepte une nouvelle connexion client. */
 int server_accept_connection(Server *srv);
 
-/* Ferme le socket serveur. */
 void server_close(Server *srv);
 
-/* Log des requêtes entrantes sur stdout. */
 void server_log_request(const char *client_ip, const char *method, const char *path);
 
 #endif

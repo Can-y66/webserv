@@ -5,14 +5,12 @@ int server_create(Server *srv, int port) {
     
     srv->port = port;
     
-    /* Crée le socket TCP. */
     srv->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (srv->socket_fd < 0) {
         perror("socket");
         return -1;
     }
     
-    /* Permet de réutiliser l'adresse rapidement après un restart. */
     if (setsockopt(srv->socket_fd, SOL_SOCKET, SO_REUSEADDR, 
                    &reuse, sizeof(reuse)) < 0) {
         perror("setsockopt");
@@ -20,13 +18,11 @@ int server_create(Server *srv, int port) {
         return -1;
     }
     
-    /* Écoute sur toutes les interfaces pour ce port. */
     memset(&srv->address, 0, sizeof(srv->address));
     srv->address.sin_family = AF_INET;
     srv->address.sin_addr.s_addr = INADDR_ANY;
     srv->address.sin_port = htons(port);
     
-    /* Associe le socket à l'adresse et au port. */
     if (bind(srv->socket_fd, (struct sockaddr *)&srv->address, 
              sizeof(srv->address)) < 0) {
         perror("bind");
@@ -34,7 +30,6 @@ int server_create(Server *srv, int port) {
         return -1;
     }
     
-    /* Démarre l'écoute. */
     if (listen(srv->socket_fd, MAX_PENDING_CONNECTIONS) < 0) {
         perror("listen");
         close(srv->socket_fd);

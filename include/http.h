@@ -30,23 +30,17 @@ typedef struct {
     char content_type[128];
 } HttpRequest;
 
-/* Parse la ligne de requête et extrait les paramètres GET. */
 int http_parse_request(const char *raw_request, HttpRequest *req);
 
-/* Envoie une réponse HTTP complète. */
 void http_send_response(int client_fd, int status_code, const char *content_type, 
                         const char *body, size_t body_length);
 
-/* Lit et envoie un fichier du disque. */
 void http_send_file(int client_fd, const char *filepath);
 
-/* Envoie une page d'erreur HTML simple. */
 void http_send_error(int client_fd, int status_code);
 
-/* Retourne le type MIME selon l'extension. */
 const char* http_get_content_type(const char *filepath);
 
-/* Récupère la valeur d'un paramètre GET. */
 const char* http_get_query_param(HttpRequest *req, const char *key);
 
 #endif

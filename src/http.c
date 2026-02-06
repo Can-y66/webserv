@@ -1,11 +1,9 @@
 #include "../include/http.h"
 #include <ctype.h>
 
-/* Décode les caractères URL (%20 -> espace, + -> espace). */
 static void url_decode(char *dst, const char *src) {
     while (*src) {
         if (*src == '%' && isxdigit(src[1]) && isxdigit(src[2])) {
-            /* Convertit deux chiffres hexa en caractère. */
             int value;
             sscanf(src + 1, "%2x", &value);
             *dst++ = (char)value;
@@ -20,7 +18,6 @@ static void url_decode(char *dst, const char *src) {
     *dst = '\0';
 }
 
-/* Parse la query string (ex: name=value&age=25). */
 static void parse_query_string(const char *query, HttpRequest *req) {
     if (!query || !*query) {
         req->param_count = 0;
@@ -61,22 +58,18 @@ int http_parse_request(const char *raw_request, HttpRequest *req) {
     
     memset(req, 0, sizeof(HttpRequest));
     
-    /* Copie la requête pour pouvoir la manipuler tranquillement. */
     strncpy(buffer, raw_request, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0';
     
-    /* Coupe la première ligne au CRLF. */
     char *line_end = strstr(buffer, "\r\n");
     if (line_end)
         *line_end = '\0';
     
-    /* Parse: METHOD /path HTTP/1.1 */
     if (sscanf(buffer, "%15s %511s %15s", 
                req->method, full_path, req->version) != 3) {
         return -1;
     }
     
-    /* Sépare le chemin de la query string. */
     char *query_start = strchr(full_path, '?');
     if (query_start) {
         *query_start = '\0';
@@ -86,12 +79,10 @@ int http_parse_request(const char *raw_request, HttpRequest *req) {
     
     strncpy(req->path, full_path, sizeof(req->path) - 1);
     
-    /* "/" devient "/index.html" par défaut. */
     if (strcmp(req->path, "/") == 0) {
         strcpy(req->path, "/index.html");
     }
     
-    /* Pour POST, on récupère le body et le Content-Type. */
     if (strcmp(req->method, "POST") == 0) {
         char *body_start = strstr(raw_request, "\r\n\r\n");
         if (body_start) {
@@ -103,7 +94,6 @@ int http_parse_request(const char *raw_request, HttpRequest *req) {
             }
         }
         
-        /* Récupère le header Content-Type si présent. */
         const char *ct = strstr(raw_request, "Content-Type:");
         if (ct) {
             const char *ct_end = strstr(ct, "\r\n");
@@ -113,7 +103,6 @@ int http_parse_request(const char *raw_request, HttpRequest *req) {
                     strncpy(req->content_type, ct + 14, len);
                     req->content_type[len] = '\0';
                     
-                    /* Supprime les espaces au début. */
                     char *trim = req->content_type;
                     while (*trim == ' ') trim++;
                     if (trim != req->content_type)
@@ -156,7 +145,6 @@ void http_send_response(int client_fd, int status_code, const char *content_type
     char header[BUFFER_SIZE];
     const char *status_text;
     
-    /* Associe un texte simple au code HTTP. */
     switch (status_code) {
         case 200: status_text = "OK"; break;
         case 404: status_text = "Not Found"; break;
@@ -165,7 +153,6 @@ void http_send_response(int client_fd, int status_code, const char *content_type
         default: status_text = "Unknown"; break;
     }
     
-    /* Construit et envoie les headers. */
     int header_len = snprintf(header, sizeof(header),
         "%s %d %s\r\n"
         "Server: %s\r\n"
@@ -179,7 +166,6 @@ void http_send_response(int client_fd, int status_code, const char *content_type
         body_length
     );
     
-    /* Envoie les headers puis le body. */
     write(client_fd, header, header_len);
     if (body && body_length > 0) {
         write(client_fd, body, body_length);
@@ -191,16 +177,13 @@ void http_send_file(int client_fd, const char *filepath) {
     struct stat file_stat;
     char *file_content;
     
-    /* Résout le chemin sous www/. */
     snprintf(full_path, sizeof(full_path), "www%s", filepath);
     
-    /* Vérifie que le fichier existe et qu'il est régulier. */
     if (stat(full_path, &file_stat) < 0 || !S_ISREG(file_stat.st_mode)) {
         http_send_error(client_fd, 404);
         return;
     }
     
-    /* Ouvre et lit le fichier. */
     int fd = open(full_path, O_RDONLY);
     if (fd < 0) {
         http_send_error(client_fd, 500);
@@ -223,7 +206,6 @@ void http_send_file(int client_fd, const char *filepath) {
         return;
     }
     
-    /* Envoie le fichier avec le bon Content-Type. */
     const char *content_type = http_get_content_type(filepath);
     http_send_response(client_fd, 200, content_type, file_content, file_stat.st_size);
     
@@ -241,7 +223,6 @@ void http_send_error(int client_fd, int status_code) {
         default: message = "Erreur"; break;
     }
     
-    /* Page d'erreur simple. */
     int body_len = snprintf(body, sizeof(body),
         "<!DOCTYPE html>\n"
         "<html>\n"
